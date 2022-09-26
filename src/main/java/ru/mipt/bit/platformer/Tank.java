@@ -1,5 +1,6 @@
 package ru.mipt.bit.platformer;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -57,7 +58,8 @@ public class Tank {
         }
     }
 
-    public void Move(float deltaTime, ListOfObstacles listOfObstacles, Keyboards Keyboard) {
+    public void Move(ListOfObstacles listOfObstacles, Keyboards Keyboard) {
+        float deltaTime = Gdx.graphics.getDeltaTime();
         if (Keyboard.isUp()) {
             checkMove(new Orientation(0, 1), listOfObstacles);
         }
