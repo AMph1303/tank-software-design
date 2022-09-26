@@ -10,6 +10,7 @@ import com.badlogic.gdx.maps.MapRenderer;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
+import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Interpolation;
 import ru.mipt.bit.platformer.util.TileMovement;
 
@@ -17,13 +18,17 @@ import static com.badlogic.gdx.graphics.GL20.GL_COLOR_BUFFER_BIT;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
 
 public class GameDesktopLauncher implements ApplicationListener {
-    private static final float MOVEMENT_SPEED = 0.4f;
+
     private Batch batch;
     private TiledMap level;
     private MapRenderer levelRenderer;
     private TileMovement tileMovement;
+    private Keyboards keyboards;
     private Tank player;
-    private Tree obstacle;
+
+    private ListOfObstacles listOfObstacles;
+    private Obstacle tree;
+
     @Override
     public void create() {
         batch = new SpriteBatch();
@@ -32,9 +37,14 @@ public class GameDesktopLauncher implements ApplicationListener {
         TiledMapTileLayer groundLayer = getSingleLayer(level);
         tileMovement = new TileMovement(groundLayer, Interpolation.smooth);
 
-        player = new Tank();
-        obstacle = new Tree();
-        moveRectangleAtTileCenter(groundLayer, obstacle.TreeRectangle(), obstacle.TreeCoordinates());
+        player = new Tank(new GridPoint2(1,1), 0f);
+        player.CreateTankGraphics("images/tank_blue.png");
+
+        listOfObstacles = new ListOfObstacles();
+        tree = new Obstacle(new GridPoint2(1,3));
+        listOfObstacles.addObstacle(tree);
+        tree.CreateObstacleGraphics("images/greenTree.png");
+        moveRectangleAtTileCenter(groundLayer, tree.ObstacleRectangle(), tree.ObstacleCoordinates());
     }
     @Override
     public void render() {
@@ -42,21 +52,16 @@ public class GameDesktopLauncher implements ApplicationListener {
         Gdx.gl.glClearColor(0f, 0f, 0.2f, 1f);
         Gdx.gl.glClear(GL_COLOR_BUFFER_BIT);
 
-        // get time passed since the last render
         float deltaTime = Gdx.graphics.getDeltaTime();
 
-        player.Move(obstacle.TreeCoordinates(), deltaTime, MOVEMENT_SPEED);
+        player.Move(deltaTime, listOfObstacles, keyboards);
         tileMovement.moveRectangleBetweenTileCenters(player.TankRectangle(), player.TankCoordinates(),
                 player.TankDestinationCoordinates(), player.TankMovementProgress());
-        // render each tile of the level
+
         levelRenderer.render();
-        // start recording all drawing commands
         batch.begin();
-        // render player
         player.Render(batch);
-        // render tree obstacle
-        obstacle.Render(batch);
-        // submit all drawing requests
+        tree.Render(batch);
         batch.end();
     }
 
@@ -79,7 +84,7 @@ public class GameDesktopLauncher implements ApplicationListener {
     public void dispose() {
         // dispose of all the native resources (classes which implement com.badlogic.gdx.utils.Disposable)
         player.dispose();
-        obstacle.dispose();
+        tree.dispose();
         level.dispose();
         batch.dispose();
     }

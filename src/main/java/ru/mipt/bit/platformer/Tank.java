@@ -1,28 +1,33 @@
 package ru.mipt.bit.platformer;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Rectangle;
 
-import static com.badlogic.gdx.Input.Keys.*;
 import static com.badlogic.gdx.math.MathUtils.isEqual;
 import static ru.mipt.bit.platformer.util.GdxGameUtils.*;
 
 public class Tank {
-
-    private static final Texture TankTexture = new Texture("images/tank_blue.png");
-    private static TextureRegion TankGraphics = new TextureRegion(TankTexture);
+    private static final float MOVEMENT_SPEED = 0.4f;
+    private static Texture TankTexture;
+    private static TextureRegion TankGraphics;
     private static Rectangle TankRectangle;
     private static GridPoint2 TankDestinationCoordinates = new GridPoint2(1, 1);
-    private static GridPoint2 TankCoordinates = new GridPoint2(TankDestinationCoordinates);
+    private static GridPoint2 TankCoordinates;
     private static float TankMovementProgress = 1f;
     private static float TankRotation = 0f;
 
-    public Tank() {
-        this.TankRectangle = createBoundingRectangle(TankGraphics);
+    public Tank(GridPoint2 coordinates, float rotation) {
+        this.TankCoordinates = coordinates;
+        this.TankRotation = rotation;
+    }
+
+    public void CreateTankGraphics(String PathTexture ){
+        this.TankTexture = new Texture(PathTexture);
+        this.TankGraphics = new TextureRegion(this.TankTexture);
+        this.TankRectangle = createBoundingRectangle(this.TankGraphics);
     }
     public static Rectangle TankRectangle() {
         return TankRectangle;
@@ -40,57 +45,43 @@ public class Tank {
         return TankDestinationCoordinates;
     }
 
-    public static void Move(GridPoint2 ObstaclesCoordinates, float deltaTime, float MOVEMENT_SPEED) {
-        if (Gdx.input.isKeyPressed(UP) || Gdx.input.isKeyPressed(W)) {
-            if (isEqual(TankMovementProgress, 1f)) {
-                // check potential player destination for collision with obstacles
-                if (!ObstaclesCoordinates.equals(incrementedY(TankCoordinates))) {
-                    TankDestinationCoordinates.y++;
-                    TankMovementProgress = 0f;
-                }
-                TankRotation = 90f;
+    public void checkMove(Orientation direction, ListOfObstacles listOfObstacles) {
+        if (isEqual(TankMovementProgress, 1f)) {
+            GridPoint2 estimateCoordinates = new GridPoint2(TankCoordinates);
+            estimateCoordinates.add(direction.Coordinates());
+            TankRotation = direction.Angle();
+            if (listOfObstacles.PossibilityOfMovement(TankCoordinates, direction.Coordinates())) {
+                TankMovementProgress = 0f;
+                TankDestinationCoordinates = estimateCoordinates;
             }
         }
-        if (Gdx.input.isKeyPressed(LEFT) || Gdx.input.isKeyPressed(A)) {
-            if (isEqual(TankMovementProgress, 1f)) {
-                if (!ObstaclesCoordinates.equals(decrementedX(TankCoordinates))) {
-                    TankDestinationCoordinates.x--;
-                    TankMovementProgress = 0f;
-                }
-                TankRotation = -180f;
-            }
-        }
-        if (Gdx.input.isKeyPressed(DOWN) || Gdx.input.isKeyPressed(S)) {
-            if (isEqual(TankMovementProgress, 1f)) {
-                if (!ObstaclesCoordinates.equals(decrementedY(TankCoordinates))) {
-                    TankDestinationCoordinates.y--;
-                    TankMovementProgress = 0f;
-                }
-                TankRotation = -90f;
-            }
-        }
-        if (Gdx.input.isKeyPressed(RIGHT) || Gdx.input.isKeyPressed(D)) {
-            if (isEqual(TankMovementProgress, 1f)) {
-                if (!ObstaclesCoordinates.equals(incrementedX(TankCoordinates))) {
-                    TankDestinationCoordinates.x++;
-                    TankMovementProgress = 0f;
-                }
-                TankRotation = 0f;
-            }
-        }
+    }
 
+    public void Move(float deltaTime, ListOfObstacles listOfObstacles, Keyboards Keyboard) {
+        if (Keyboard.isUp()) {
+            checkMove(new Orientation(0, 1), listOfObstacles);
+        }
+        if (Keyboard.isLeft()) {
+            checkMove(new Orientation(-1, 0), listOfObstacles);
+        }
+        if (Keyboard.isDown()) {
+            checkMove(new Orientation(0, -1), listOfObstacles);
+        }
+        if (Keyboard.isRight()) {
+            checkMove(new Orientation(1, 0), listOfObstacles);
+        }
         TankMovementProgress = continueProgress(TankMovementProgress, deltaTime, MOVEMENT_SPEED);
         if (isEqual(TankMovementProgress, 1f)) {
-            // record that the player has reached his/her destination
             TankCoordinates.set(TankDestinationCoordinates);
         }
     }
+
     public void Render(Batch batch){
         drawTextureRegionUnscaled(batch, TankGraphics, TankRectangle, TankRotation);
     }
 
     public void dispose(){
-        TankTexture.dispose();
+    TankTexture.dispose();
     }
 
 }
