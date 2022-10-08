@@ -57,6 +57,8 @@ public class Tank {
             }
         }
     }
+    //реализуется только, если им управляет человек а не ии
+    // вынести подобныое в отдельный класс (для обработки пользовательског ввода)
 
     public void Move(ListOfObstacles listOfObstacles, Keyboards Keyboard) {
         float deltaTime = Gdx.graphics.getDeltaTime();

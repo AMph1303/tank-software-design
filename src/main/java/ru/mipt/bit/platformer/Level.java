@@ -41,4 +41,12 @@ public class Level {
     public void dispose(){
         this.level.dispose();
     }
+
+    public void ReadFromFile():{
+
+
+
+        }
+
+    }
 }

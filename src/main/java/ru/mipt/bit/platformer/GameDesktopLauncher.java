@@ -38,16 +38,21 @@ public class GameDesktopLauncher implements ApplicationListener {
     }
     @Override
     public void render() {
-        level.ClearScreen();
+        level.ClearScreen();  // лучше как метод вывести
 
-        player.Move(listOfObstacles, keyboards);
+        //тоже двиующиеся объекты как-то вынести, те итерироваться по движущимся игровым объектам
+        player.Move(listOfObstacles, keyboards); // некоторые параметры лучше загнать в сам класс
         tileMovement.moveRectangleBetweenTileCenters(player.TankRectangle(), player.TankCoordinates(),
                 player.TankDestinationCoordinates(), player.TankMovementProgress());
 
         level.Render();
         batch.begin();
+
+        // создать общий метод для рендера
+        // создать как вариант коллекции Collection<OnScreenObjects> , добавить объекты, а потом закинуть в цикл фор и отрисовать
         player.Render(batch);
         tree.Render(batch);
+
         batch.end();
     }
 
