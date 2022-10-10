@@ -9,6 +9,8 @@ import com.badlogic.gdx.math.GridPoint2;
 import com.badlogic.gdx.math.Interpolation;
 import ru.mipt.bit.platformer.util.TileMovement;
 
+import java.util.List;
+
 import static ru.mipt.bit.platformer.util.GdxGameUtils.moveRectangleAtTileCenter;
 
 public class GameDesktopLauncher implements ApplicationListener {
@@ -17,8 +19,9 @@ public class GameDesktopLauncher implements ApplicationListener {
     private TileMovement tileMovement;
     private Keyboards keyboards;
     private Tank player;
-    private ListOfObstacles listOfObstacles;
     private Obstacle tree;
+    private List<GridPoint2> ObstaclesCoord;
+    private ListOfObstacles listOfObstacles = new ListOfObstacles();
 
     @Override
     public void create() {
@@ -26,33 +29,51 @@ public class GameDesktopLauncher implements ApplicationListener {
         level = new Level("level.tmx", batch);
 
         tileMovement = new TileMovement(level.GroundLayer(), Interpolation.smooth);
+        CreateLevelFromFile levelInfo = new CreateLevelFromFile("/home/a_madan/Документы/9sem/OOPOOD/tank_hw/tank-software-design/src/main/resources/Level1.txt");
+        //GenerateRandomLevel levelinfo = new GenerateRandomLevel();
+        CreatePlayer(levelInfo);
+        CreateObstracles(levelInfo);
 
-        player = new Tank(new GridPoint2(1,1), 0f);
-        player.CreateTankGraphics("images/tank_blue.png");
-
-        listOfObstacles = new ListOfObstacles();
-        tree = new Obstacle(new GridPoint2(1,3));
-        listOfObstacles.addObstacle(tree);
-        tree.CreateObstacleGraphics("images/greenTree.png");
-        moveRectangleAtTileCenter(level.GroundLayer(), tree.ObstacleRectangle(), tree.ObstacleCoordinates());
     }
+
+    private void CreatePlayer(CreateLevelFromFile levelInfo) {
+        GridPoint2 TankCoordinates = levelInfo.TankCoordinatesFromFile();
+        player = new Tank(TankCoordinates, 0f);
+        player.CreateTankGraphics("images/tank_blue.png");
+    }
+
+    private void CreateObstracles(CreateLevelFromFile levelInfo) {
+        ObstaclesCoord = levelInfo.TreeCoordinatesFromFile();
+        for (GridPoint2 obstacleCoord : ObstaclesCoord){
+            tree = new Obstacle(obstacleCoord);
+            tree.CreateObstacleGraphics("images/greenTree.png");
+            moveRectangleAtTileCenter(level.GroundLayer(), tree.ObstacleRectangle(), tree.ObstacleCoordinates());
+            listOfObstacles.add(tree);
+        }
+
+
+    }
+
     @Override
     public void render() {
-        level.ClearScreen();  // лучше как метод вывести
+        level.ClearScreen();
 
         //тоже двиующиеся объекты как-то вынести, те итерироваться по движущимся игровым объектам
         player.Move(listOfObstacles, keyboards); // некоторые параметры лучше загнать в сам класс
         tileMovement.moveRectangleBetweenTileCenters(player.TankRectangle(), player.TankCoordinates(),
                 player.TankDestinationCoordinates(), player.TankMovementProgress());
 
+        LevelRender();
+    }
+
+    private void LevelRender() {
         level.Render();
         batch.begin();
-
-        // создать общий метод для рендера
-        // создать как вариант коллекции Collection<OnScreenObjects> , добавить объекты, а потом закинуть в цикл фор и отрисовать
         player.Render(batch);
-        tree.Render(batch);
 
+        for (Obstacle obstracle : listOfObstacles.getObstacles()) {
+            obstracle.Render(batch);
+        }
         batch.end();
     }
 
@@ -75,7 +96,9 @@ public class GameDesktopLauncher implements ApplicationListener {
     public void dispose() {
         // dispose of all the native resources (classes which implement com.badlogic.gdx.utils.Disposable)
         player.dispose();
-        tree.dispose();
+        for (Obstacle obstracle : listOfObstacles.getObstacles()) {
+            obstracle.dispose();
+        }
         level.dispose();
         batch.dispose();
     }

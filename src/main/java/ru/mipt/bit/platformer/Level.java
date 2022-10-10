@@ -42,11 +42,6 @@ public class Level {
         this.level.dispose();
     }
 
-    public void ReadFromFile():{
-
-
-
-        }
 
     }
-}
+

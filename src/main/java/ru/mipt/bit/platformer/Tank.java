@@ -15,13 +15,14 @@ public class Tank {
     private static Texture TankTexture;
     private static TextureRegion TankGraphics;
     private static Rectangle TankRectangle;
-    private static GridPoint2 TankDestinationCoordinates = new GridPoint2(1, 1);
+    private static GridPoint2 TankDestinationCoordinates;
     private static GridPoint2 TankCoordinates;
     private static float TankMovementProgress = 1f;
     private static float TankRotation = 0f;
 
     public Tank(GridPoint2 coordinates, float rotation) {
         this.TankCoordinates = coordinates;
+        this.TankDestinationCoordinates = coordinates;
         this.TankRotation = rotation;
     }
 
